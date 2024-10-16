@@ -117,6 +117,7 @@ function requestListener(req, res) {
 
     default:
         res.writeHead(405); // якщо клієнт зробив запит з невідомим методом
+        res.end();
         debug(req, 405);
     }
 }
