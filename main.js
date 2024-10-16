@@ -32,7 +32,6 @@ const options = preparing();
 
 
 function getPicture(way) {
-    console.log(way);
     return fsp.readFile(way);
 }
 
@@ -47,8 +46,7 @@ function deletePicture(way) {
 }
 
 function downloadPicture(code) {
-    console.log(`http.cat/${code.toString().substring(1)}`);
-    const agent = superagent.get(`http.cat/${code.toString().substring(1)}`);
+    const agent = superagent.get(`https://http.cat/${code.toString().substring(1)}`);
     return agent;
 }
 
@@ -58,30 +56,28 @@ function debug(req, code) {
 
 
 function requestListener(req, res) {
-    const way = path.normalize(path.join(__dirname, options.cashe,`${req.url}.png`));
-    let code = 0;
-
+    const way = path.normalize(path.join(__dirname, options.cashe,`${req.url}.jpg`));
 
     switch (req.method) {
     case "GET":
         getPicture(way)
         .then(
             (result) => {
-                res.writeHead(200, {"Content-Type": "image/png"});
+                res.writeHead(200, {"Content-Type": "image/jpg"});
                 res.end(result);
                 debug(req, 200);
             })
-        .catch((error) => {
+        .catch((error_of_getting) => {
                 downloadPicture(req.url)
                     .then((result_of_download) => {
-                        makePicture(way, result.body)
+                        makePicture(way, result_of_download.body)
                             .then((result_of_making_picture) => {});
 
-                        res.writeHead(200);
+                        res.writeHead(200, {"Content-Type": "image/jpg"});
                         res.end(result_of_download.body);
                         debug(req, 200);
                     })
-                    .catch((error) => {
+                    .catch((error_of_downloading) => {
                         res.writeHead(404);
                         res.end();
                         debug(req, 404);
