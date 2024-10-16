@@ -2,7 +2,7 @@ const { program } = require("commander");
 const http = require("http");
 const fsp = require("node:fs/promises");
 const path = require('node:path');
-
+const superagent = require('superagent');
 
 function preparing() {
     // опис параметрів програми
@@ -46,6 +46,11 @@ function deletePicture(way) {
     return fsp.unlink(way);
 }
 
+function downloadPicture(code) {
+    console.log(`http.cat/${code.toString().substring(1)}`);
+    const agent = superagent.get(`http.cat/${code.toString().substring(1)}`);
+    return agent;
+}
 
 function debug(req, code) {
     console.log(`Request method: ${req.method}\tResponse code: ${code}`);
@@ -56,7 +61,7 @@ function requestListener(req, res) {
     const way = path.normalize(path.join(__dirname, options.cashe,`${req.url}.png`));
     let code = 0;
 
-    
+
     switch (req.method) {
     case "GET":
         getPicture(way)
@@ -67,9 +72,20 @@ function requestListener(req, res) {
                 debug(req, 200);
             })
         .catch((error) => {
-                res.writeHead(404);
-                res.end();
-                debug(req, 404);
+                downloadPicture(req.url)
+                    .then((result_of_download) => {
+                        makePicture(way, result.body)
+                            .then((result_of_making_picture) => {});
+
+                        res.writeHead(200);
+                        res.end(result_of_download.body);
+                        debug(req, 200);
+                    })
+                    .catch((error) => {
+                        res.writeHead(404);
+                        res.end();
+                        debug(req, 404);
+                    });
             });
         break;
 
