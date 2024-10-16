@@ -29,19 +29,21 @@ function preparing() {
 
 const options = preparing();
 
-function getPicture(cashe_way, code) {
-    const way = path.normalize(path.join(__dirname, cashe_way,`${code}.png`));
+function getPicture(way) {
     console.log(way);
     return fsp.readFile(way);
 }
 
+function makePicture(way, data) {
+    return fsp.writeFile(way, data);
+}
 
 function requestListener(req, res) {
-    const code_number = req.url;
+    const way = path.normalize(path.join(__dirname, options.cashe,`${req.url}.png`));
 
     switch (req.method) {
     case "GET":
-        getPicture(options.cashe, code_number)
+        getPicture(way)
         .then(
             (result) => {
                 res.writeHead(200, {"Content-Type": "image/png"});
@@ -52,6 +54,22 @@ function requestListener(req, res) {
                 res.end();
             });
         break;
+
+    case "PUT":
+        let data = [];
+        req.on("data", (chunk) => {
+            data.push(chunk);
+        });
+
+        req.on("end", () => {
+            makePicture(way, Buffer.concat(data))
+            .then((result) => {
+                res.writeHead("201");
+                res.end();
+            });
+        });
+        break;
+
     default:
         res.writeHead(405);
     }
