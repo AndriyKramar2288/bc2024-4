@@ -27,20 +27,36 @@ function preparing() {
 	return options;	
 }
 
+
 const options = preparing();
+
 
 function getPicture(way) {
     console.log(way);
     return fsp.readFile(way);
 }
 
+
 function makePicture(way, data) {
     return fsp.writeFile(way, data);
 }
 
+
+function deletePicture(way) {
+    return fsp.unlink(way);
+}
+
+
+function debug(req, code) {
+    console.log(`Request method: ${req.method}\tResponse code: ${code}`);
+}
+
+
 function requestListener(req, res) {
     const way = path.normalize(path.join(__dirname, options.cashe,`${req.url}.png`));
+    let code = 0;
 
+    
     switch (req.method) {
     case "GET":
         getPicture(way)
@@ -48,10 +64,12 @@ function requestListener(req, res) {
             (result) => {
                 res.writeHead(200, {"Content-Type": "image/png"});
                 res.end(result);
+                debug(req, 200);
             })
         .catch((error) => {
                 res.writeHead(404);
                 res.end();
+                debug(req, 404);
             });
         break;
 
@@ -66,14 +84,30 @@ function requestListener(req, res) {
             .then((result) => {
                 res.writeHead("201");
                 res.end();
+                debug(req, 201);
             });
         });
         break;
 
+    case "DELETE":
+        deletePicture(way)
+            .then((result) => {
+                res.writeHead("200");
+                res.end();
+                debug(req, 200);
+            })
+            .catch((error) => {
+                res.writeHead("404");
+                res.end();
+                debug(req, 404);
+            });
+        break;
+
     default:
         res.writeHead(405);
+        debug(req, 405);
     }
-} 
+}
 
 
 function main() {
