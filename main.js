@@ -30,9 +30,9 @@ function preparing() {
 const options = preparing();
 
 function getPicture(cashe_way, code) {
-    const way = path.normalize(`${cashe_way}${code}.png`);
-
-    return fsp.readFile(way, "binary");
+    const way = path.normalize(path.join(__dirname, cashe_way,`${code}.png`));
+    console.log(way);
+    return fsp.readFile(way);
 }
 
 
@@ -44,17 +44,18 @@ function requestListener(req, res) {
         getPicture(options.cashe, code_number)
         .then(
             (result) => {
-                res.writeHead(200, {"Content-Type": "image/jpeg"});
+                res.writeHead(200, {"Content-Type": "image/png"});
                 res.end(result);
             })
         .catch((error) => {
                 res.writeHead(404);
+                res.end();
             });
         break;
     default:
         res.writeHead(405);
     }
-}
+} 
 
 
 function main() {
