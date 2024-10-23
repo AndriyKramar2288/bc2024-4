@@ -55,6 +55,13 @@ function debug(req, code) {
 }
 // слухач, параметри зі запитом request та відповідю response
 function requestListener(req, res) {
+    // у випадку відсутности вказаного шляху...
+    if (req.url == "/") {
+        res.writeHead(404);            
+        res.end();
+        debug(req, 404);
+        return 1;
+    }
     // шлях розмізщення картинок саме у файловій системі
     const way = path.normalize(path.join(__dirname, options.cashe,`${req.url}.jpg`));
     // залежно від отриманого запиту . . .
